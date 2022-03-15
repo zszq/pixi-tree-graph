@@ -1,4 +1,3 @@
-let a: number = 123456789;
-console.log(a);
+import * as PIXI from "pixi.js";
 
-export default a;
+export default PIXI;
