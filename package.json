@@ -7,9 +7,8 @@
   "browser": "dist/pixi-tree-graph.umd.min.js",
   "types": "dist/pixi-tree-graph.d.ts",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development rollup -c -w",
-    "build": "cross-env NODE_ENV=production npm run build:pro",
-    "build:pro": "rimraf dist && rollup -c",
+    "dev": "rimraf dist && cross-env NODE_ENV=development rollup -c -w",
+    "build": "rimraf dist && cross-env NODE_ENV=production rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
