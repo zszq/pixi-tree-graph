@@ -29,7 +29,7 @@ const bundle = (format, filename, options = {}) => ({
   output: {
     file: filename,
     format: format,
-    name: "PixiTree",
+    name: "PixiTreeGraph",
     sourcemap: true,
   },
   // external: [

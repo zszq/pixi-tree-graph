@@ -1,0 +1,37 @@
+{
+    "nodes": [{
+        "id": "node0",
+        "group": [1, 2, 3],
+        "icon": "http://127.0.0.1:8080/docs/images/ba.png",
+        "x": 100,
+        "y": 200
+    }, {
+        "id": "node1",
+        "group": [1, 2, 3],
+        "icon": "http://127.0.0.1:8080/docs/images/ba.png",
+        "x": 400,
+        "y": 200
+    }, {
+        "id": "node2",
+        "group": [1, 2, 3],
+        "icon": "http://127.0.0.1:8080/docs/images/ba.png",
+        "x": 400,
+        "y": 450
+    }],
+    "links": [{
+            "source": "node0",
+            "target": "node1",
+            "value": 4
+        },
+        {
+            "source": "node0",
+            "target": "node2",
+            "value": 4
+        },
+        {
+            "source": "node1",
+            "target": "node2",
+            "value": 5
+        }
+    ]
+}

@@ -1,12 +1,221 @@
 <!DOCTYPE html>
 <html lang="zh">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pixi-tree-graph</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pixi-tree-graph</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="./js/graphology.js"></script>
+  <script src="./js/graphology-layout-forceatlas2.js"></script>
+  <script src="./js/fontfaceobserver.standalone.js"></script>
+  <script src="/dist/pixi-tree-graph.umd.js"></script>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    #container {
+      width: 100vw;
+      height: 100vh;
+      background: #F7F9FC;
+    }
+  </style>
 </head>
+
 <body>
-    <script src="/dist/pixi-tree-graph.umd.js"></script>
+  <div id="container"></div>
+  <script>
+    (function () {
+      var script = document.createElement('script');
+      script.onload = function () {
+        var stats = new Stats();
+        document.body.appendChild(stats.dom);
+        requestAnimationFrame(function loop() {
+          stats.update();
+          requestAnimationFrame(loop);
+        });
+      };
+      script.src = './js/stats.js';
+      document.head.appendChild(script);
+    })()
+    
+    window.addEventListener('DOMContentLoaded', async () => {
+      // graphology
+      const graph = new graphology.Graph({
+        multi: true,
+        type: 'undirected'
+      });
+      const { nodes, links } = await (await fetch('./data/data3.json')).json();
+      nodes.forEach(node => {
+        graph.addNode(node.id, { ...node });
+      });
+      links.forEach(link => {
+        if (!graph.hasEdge(`${link.source}->${link.target}`)) {
+          // graph.addEdge(link.source, link.target, {...link});
+          graph.addEdgeWithKey(`${link.source}->${link.target}`, link.source, link.target, link);
+        }
+      });
+
+      // layout
+      // graph.forEachNode(node => {
+      //   graph.setNodeAttribute(node, 'x', Math.random());
+      //   graph.setNodeAttribute(node, 'y', Math.random());
+      // });
+      // console.time('compute');
+      // forceAtlas2.assign(graph, { iterations: 300, settings: { ...forceAtlas2.inferSettings(graph), scalingRatio: 200 } });
+      // console.timeEnd('compute');
+      console.log(graph.nodes().length, graph.edges().length);
+
+      const NODE_COLOR_NORMAL = '#1f77b4';
+      const EDGE_COLOR_NORMAL = '#cccccc';
+      const COLOR_SELECTED = '#B5B9C6';
+
+      const style = {
+        node: {
+          shape: node => 'rect', // circle or rect
+          radius: 4,
+          width: 180,
+          height: 100,
+          color: '#fff',
+          padding: 8,
+          border: {
+            width: 3,
+            color: '#ccc',
+            // color: 'rgba(0, 0, 0, 0)',
+          },
+          content: {
+            show: true,
+            amount: {
+              content: '1,399.99690970BTC',
+              icon: node => '/demo/images/import.svg',
+              iconWidth: 24,
+              iconHeight: 24,
+              fontFamily: 'Arial',
+              fontSize: 14,
+              fontWeight: '400',
+              color: '#FF4D4F',
+              stroke: 'black',
+              strokeThickness: 0,
+            },
+            address: {
+              content: 'bc1qcy9c...p6xp2kny',
+              icon: node => '/demo/images/address.svg',
+              iconWidth: 24,
+              iconHeight: 24,
+              fontFamily: 'Arial',
+              fontSize: 14,
+              fontWeight: '400',
+              color: '#000',
+              stroke: 'black',
+              strokeThickness: 0,
+            },
+            label: {
+              content: node => node.id, // '币安'
+              padding: 4,
+              backgroundColor: '#F0F5FF',
+              borderColor: '#ADC6FF',
+              fontFamily: 'Arial',
+              fontSize: 12,
+              fontWeight: '400',
+              color: '#2150F5',
+              stroke: 'black',
+              strokeThickness: 0,
+            }
+          },
+          label: {
+            show: false,
+            content: node => 'label',
+            type: 'TEXT',
+            position: 'bottom', // top center bottom
+            fontFamily: 'Arial',
+            fontSize: 12,
+            fontWeight: '400',
+            color: '#000',
+            stroke: '#fff',
+            strokeThickness: 3,
+            backgroundColor: 'rgba(255, 255, 255, 0)',
+            padding: 2,
+          },
+          attach: {
+            show: true,
+            position: node => 'right', // left or right
+            icon: node => '/demo/images/extends.svg',
+            iconWidth: 24,
+            iconHeight: 24,
+          }
+        },
+        edge: {
+          width: edge => 1,
+          color: edge => '#000',
+          selefLoop: { // 自循环线的样式
+            radius: 30,  // 圆环半径
+            cross: 10 // 点线相交距离
+          },
+          gap: 20, // 两根平行线之间的间距
+          bilateralKey: 'reverse', // 判断是否存在相反线的关键字，用于查看下级节点时使用，需在线属性设置此key和相应的boolean值。
+          arrow: {
+            show: true,
+            size: edge => (Math.log((edge.value || 0) + 1) + 2) * 3, // 根据edge.width设置避免被覆盖,如果不能被2整除会自动加1像素，防止发生偏移
+          },
+          label: {
+            content: edge => '',
+            type: 'TEXT',
+            fontFamily: 'HelveticaRegular',
+            fontSize: 12,
+            fontWeight: '500',
+            color: '#000',
+            stroke: '#fff',
+            strokeThickness: 3,
+            backgroundColor: 'rgba(255, 255, 255, 0)',
+            padding: 2,
+          },
+        },
+      };
+      const hoverStyle = {
+        node: {
+          border: {
+            color: '#18A0FB',
+          },
+          label: {
+            backgroundColor: 'rgba(255, 255, 255, 0.6)',
+            // color: '#ffffff',
+            fontWeight: 'bolder',
+          },
+        },
+        edge: {
+          color: COLOR_SELECTED,
+          label: {
+            backgroundColor: 'rgba(255, 255, 255, 0)',
+            // color: '#ffffff',
+            fontWeight: 'bolder',
+          },
+        },
+      };
+
+      // const resources = [
+      //   { name: 'HelveticaRegular', url: 'https://gist.githubusercontent.com/zakjan/b61c0a26d297edf0c09a066712680f37/raw/8cdda3c21ba3668c3dd022efac6d7f740c9f1e18/HelveticaRegular.fnt' },
+      // ];
+      // await new FontFaceObserver('iconfont').load().then(() => console.log('Icons'));
+
+
+      // instantiation TreeGraph
+      let container = document.querySelector('#container');
+      const TreeGraph = new PixiTreeGraph.PixiGraph({
+        container,
+        graph,
+        style,
+        hoverStyle,
+        // resources,
+      })
+      console.log(TreeGraph);
+      TreeGraph.resetView(graph.nodes());
+
+
+    })
+  </script>
 </body>
+
 </html>
