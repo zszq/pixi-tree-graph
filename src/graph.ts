@@ -69,6 +69,7 @@ const DEFAULT_STYLE: GraphStyleDefinition = {
         strokeThickness: 0,
       },
       label: {
+        show: true,
         content: 'label',
         padding: 4,
         backgroundColor: '',
@@ -106,6 +107,7 @@ const DEFAULT_STYLE: GraphStyleDefinition = {
   edge: {
     width: 1,
     color: '#cccccc',
+    side: 'right', // left or right
     selefLoop: {
       radius: 30,
       cross: 10
@@ -152,9 +154,9 @@ interface PixiGraphEvents {
   nodeRightclick: (event: MouseEvent, nodeKey: string, nodeStyle: NodeStyle) => void;
   nodeMove: (event: MouseEvent, nodeKey: string, point: IPointData) => void;
 
-  btnMousedown: (event: MouseEvent, nodeKey: string, nodeStyle: NodeStyle) => void;
-  btnMouseup: (event: MouseEvent, nodeKey: string, nodeStyle: NodeStyle) => void;
-  btnClick: (event: MouseEvent, nodeKey: string, nodeStyle: NodeStyle) => void;
+  attachMousedown: (event: MouseEvent, nodeKey: string, nodeStyle: NodeStyle) => void;
+  attachMouseup: (event: MouseEvent, nodeKey: string, nodeStyle: NodeStyle) => void;
+  attachClick: (event: MouseEvent, nodeKey: string, nodeStyle: NodeStyle) => void;
 
   edgeClick: (event: MouseEvent, edgeKey: string, edgeStyle: EdgeStyle) => void;
   edgeMousemove: (event: MouseEvent, edgeKey: string, edgeStyle: EdgeStyle) => void;
@@ -165,7 +167,6 @@ interface PixiGraphEvents {
   edgeRightclick: (event: MouseEvent, edgeKey: string, edgeStyle: EdgeStyle) => void;
 
   viewClick: (event: any) => void;
-  // progress: (percentage: number) => void;
 }
 
 export class PixiGraph<NodeAttributes extends BaseNodeAttributes = BaseNodeAttributes, EdgeAttributes extends BaseEdgeAttributes = BaseEdgeAttributes> extends TypedEmitter<PixiGraphEvents> {
@@ -319,11 +320,11 @@ export class PixiGraph<NodeAttributes extends BaseNodeAttributes = BaseNodeAttri
 
       // initial draw
       this.createGraph();
-      // this.resetView(this.graph.nodes());
-      const screenLine = new Graphics().lineStyle(3, 0x0379f3).drawRect(0, 0, this.viewport.screenWidth, this.viewport.screenHeight);
-      this.app.stage.addChild(screenLine);
-      const worldLine = new Graphics().lineStyle(3, 0xff0000).drawRect(0, 0, this.viewport.worldWidth, this.viewport.worldHeight);
-      this.viewport.addChild(worldLine);
+      this.resetView(this.graph.nodes());
+      // const screenLine = new Graphics().lineStyle(3, 0x0379f3).drawRect(0, 0, this.viewport.screenWidth, this.viewport.screenHeight);
+      // this.app.stage.addChild(screenLine);
+      // const worldLine = new Graphics().lineStyle(3, 0xff0000).drawRect(0, 0, this.viewport.worldWidth, this.viewport.worldHeight);
+      // this.viewport.addChild(worldLine);
     });
   }
 
@@ -354,7 +355,7 @@ export class PixiGraph<NodeAttributes extends BaseNodeAttributes = BaseNodeAttri
 
   // 销毁实例无效，多次实例化会造成内存溢出，临时处理：只实例化一次，由外层动态设置位置
   resetView(nodes: any[]) {
-    if (!nodes.length) { // 设置一个能显示在窗口的，防止外面没调用此函数看不到内容
+    if (!nodes.length) { // 实例化空数据时移动视图到屏幕中心，防止后面添加数据后没调用此函数可能看不到内容
       this.viewport.center = new Point(this.container.clientWidth / 2, this.container.clientHeight / 2);
       return;
     }
@@ -377,7 +378,9 @@ export class PixiGraph<NodeAttributes extends BaseNodeAttributes = BaseNodeAttri
 
     this.viewport.setZoom(1);
     this.viewport.center = graphCenter;
-    this.viewport.fit(true);
+    if (graphWidth > this.container.clientWidth) {
+      this.viewport.fit(true);
+    }
   }
 
   private onGraphNodeAdded(data: { key: string, attributes: NodeAttributes }) {
@@ -446,8 +449,6 @@ export class PixiGraph<NodeAttributes extends BaseNodeAttributes = BaseNodeAttri
 
     const nodeLayerChildrens = this.nodeLayer.children;
     this.nodeLayer.setChildIndex(node.nodeGfx, nodeLayerChildrens.length - 1);
-    this.nodeLayer.setChildIndex(node.nodeContentGfx, nodeLayerChildrens.length - 1);
-    this.nodeLayer.setChildIndex(node.nodeLabelGfx, nodeLayerChildrens.length - 1);
     this.nodeLayer.setChildIndex(node.nodeAttachGfx, nodeLayerChildrens.length - 1);
   }
 
@@ -528,13 +529,10 @@ export class PixiGraph<NodeAttributes extends BaseNodeAttributes = BaseNodeAttri
 
   private createGraph() {
     console.time('create-render');
-    // this.emit('progress', 0); // 线上使用时不生效
     this.onprogress && this.onprogress(0);
     this.graph.forEachNode(this.createNode.bind(this));
-    // this.emit('progress', 50);
     this.onprogress && this.onprogress(50);
     this.graph.forEachEdge(this.createEdge.bind(this));
-    // this.emit('progress', 100);
     this.onprogress && this.onprogress(100);
     console.timeEnd('create-render');
   }
@@ -562,8 +560,8 @@ export class PixiGraph<NodeAttributes extends BaseNodeAttributes = BaseNodeAttri
     node.on('mousedown', (event: MouseEvent) => {
       this.nodeMouseX = event.offsetX;
       this.nodeMouseY = event.offsetY;
-      this.mousedownNodeKey = nodeKey;
-      this.enableNodeDragging();
+      // this.mousedownNodeKey = nodeKey;
+      // this.enableNodeDragging();
       this.emit('nodeMousedown', event, nodeKey, nodeStyle);
     });
     node.on('mouseup', (event: MouseEvent) => {
@@ -576,25 +574,22 @@ export class PixiGraph<NodeAttributes extends BaseNodeAttributes = BaseNodeAttri
       this.emit('nodeRightclick', event, nodeKey, nodeStyle);
     });
 
-    node.on('btnmousedown', (event: MouseEvent) => {
+    node.on('attachmousedown', (event: MouseEvent) => {
       this.nodeMouseX = event.offsetX;
       this.nodeMouseY = event.offsetY;
-      this.mousedownNodeKey = nodeKey;
-      this.enableNodeDragging();
-      this.emit('btnMousedown', event, nodeKey, nodeStyle);
+      // this.mousedownNodeKey = nodeKey;
+      // this.enableNodeDragging();
+      this.emit('attachMousedown', event, nodeKey, nodeStyle);
     });
-    node.on('btnmouseup', (event: MouseEvent) => {
-      this.emit('btnMouseup', event, nodeKey, nodeStyle);
+    node.on('attachmouseup', (event: MouseEvent) => {
+      this.emit('attachMouseup', event, nodeKey, nodeStyle);
       if (this.nodeMouseX === event.offsetX && this.nodeMouseY === event.offsetY) {
-        this.emit('btnClick', event, nodeKey, nodeStyle);
+        this.emit('attachClick', event, nodeKey, nodeStyle);
       }
     });
 
     this.nodeLayer.addChild(node.nodeGfx);
-    this.nodeLayer.addChild(node.nodeContentGfx);
-    this.nodeLayer.addChild(node.nodeLabelGfx);
     this.nodeLayer.addChild(node.nodeAttachGfx);
-    // this.nodeLabelLayer.addChild(node.nodeLabelGfx);
     
     this.nodeKeyToNodeObject.set(nodeKey, node);
 
@@ -649,10 +644,7 @@ export class PixiGraph<NodeAttributes extends BaseNodeAttributes = BaseNodeAttri
     const node = this.nodeKeyToNodeObject.get(nodeKey)!;
 
     this.nodeLayer.removeChild(node.nodeGfx);
-    this.nodeLayer.removeChild(node.nodeLabelGfx);
-    this.nodeLayer.removeChild(node.nodeContentGfx);
     this.nodeLayer.removeChild(node.nodeAttachGfx);
-    // this.nodeLabelLayer.removeChild(node.nodeLabelGfx);
 
     this.nodeKeyToNodeObject.delete(nodeKey);
   }

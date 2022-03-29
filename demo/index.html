@@ -87,7 +87,7 @@
             // color: 'rgba(0, 0, 0, 0)',
           },
           content: {
-            show: true,
+            show: node => node.content,
             amount: {
               content: '1,399.99690970BTC',
               icon: node => '/demo/images/import.svg',
@@ -113,6 +113,7 @@
               strokeThickness: 0,
             },
             label: {
+              show: false,
               content: node => node.id, // '币安'
               padding: 4,
               backgroundColor: '#F0F5FF',
@@ -126,10 +127,10 @@
             }
           },
           label: {
-            show: false,
+            show: node => node.label,
             content: node => 'label',
             type: 'TEXT',
-            position: 'bottom', // top center bottom
+            position: node => node.content ? 'center' : 'bottom', // top center bottom
             fontFamily: 'Arial',
             fontSize: 12,
             fontWeight: '400',
@@ -150,6 +151,7 @@
         edge: {
           width: edge => 1,
           color: edge => '#000',
+          side: 'right',
           selefLoop: { // 自循环线的样式
             radius: 30,  // 圆环半径
             cross: 10 // 点线相交距离
@@ -211,7 +213,7 @@
         // resources,
       })
       console.log(TreeGraph);
-      TreeGraph.resetView(graph.nodes());
+      // TreeGraph.resetView(graph.nodes());
 
 
     })

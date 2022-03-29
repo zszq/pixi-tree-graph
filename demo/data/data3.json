@@ -4,34 +4,43 @@
         "group": [1, 2, 3],
         "icon": "http://127.0.0.1:8080/docs/images/ba.png",
         "x": 100,
-        "y": 200
+        "y": 200,
+        "label": true,
+        "content": true
     }, {
         "id": "node1",
         "group": [1, 2, 3],
         "icon": "http://127.0.0.1:8080/docs/images/ba.png",
         "x": 400,
-        "y": 200
+        "y": 200,
+        "label": true,
+        "content": false
     }, {
         "id": "node2",
         "group": [1, 2, 3],
         "icon": "http://127.0.0.1:8080/docs/images/ba.png",
-        "x": 400,
-        "y": 450
+        "x": 600,
+        "y": 450,
+        "label": false,
+        "content": true
     }],
     "links": [{
             "source": "node0",
             "target": "node1",
-            "value": 4
+            "value": 4,
+            "side": "left"
         },
         {
             "source": "node0",
             "target": "node2",
-            "value": 4
+            "value": 4,
+            "side": "left"
         },
         {
             "source": "node1",
             "target": "node2",
-            "value": 5
+            "value": 5,
+            "side": "right"
         }
     ]
 }

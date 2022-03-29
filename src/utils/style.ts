@@ -41,6 +41,7 @@ export interface GraphStyle {
         strokeThickness: number;
       };
       label: {
+        show: boolean,
         content: string;
         padding: number;
         backgroundColor: string;
@@ -78,6 +79,7 @@ export interface GraphStyle {
   edge: {
     width: number;
     color: string;
+    side: string;
     selefLoop: {
       radius: number;
       cross: number;

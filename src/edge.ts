@@ -97,20 +97,17 @@ export class PixiEdge extends TypedEmitter<PixiEdgeEvents> {
       let sourceX = sourceNodePosition.x;
       let targetY = targetNodePosition.y;
       let sourceY = sourceNodePosition.y;
-      let arrowX = 0;
-      let arrowY = 0;
-      if (sourceNodePosition.x >= targetNodePosition.x) {
-        // 右指向左
-        targetX = targetNodePosition.x + targetNodeStyle.width / 2;
-        sourceX = sourceNodePosition.x - sourceNodeStyle.width / 2;
-        arrowX = targetX + edgeStyle.arrow.size / 2;
-        arrowY = targetY + edgeStyle.arrow.size / 2;
-      } else if (sourceNodePosition.x < targetNodePosition.x) {
-        // 左指向右
+      // 非通用方式，仅对当前项目定制
+      if (edgeStyle.side == 'right') {
+        // 右侧树
+        let attachWidth = sourceNodeStyle.attach.show ? sourceNodeStyle.attach.iconWidth : 0; // 是否有按钮宽度，有则加上按钮宽度
+        sourceX = sourceNodePosition.x + sourceNodeStyle.width / 2 + attachWidth + sourceNodeStyle.border.width; // sourceNodeStyle.border.width 为根节点边框宽度，一刀切方便些。。。
         targetX = targetNodePosition.x - targetNodeStyle.width / 2;
+      } else {
+        // 左侧树
+        let attachWidth = targetNodeStyle.attach.show ? targetNodeStyle.attach.iconWidth : 0; // 是否有按钮宽度，有则加上按钮宽度
         sourceX = sourceNodePosition.x + sourceNodeStyle.width / 2;
-        arrowX = targetX + edgeStyle.arrow.size / 2;
-        arrowY = targetY - edgeStyle.arrow.size / 2;
+        targetX = targetNodePosition.x - targetNodeStyle.width / 2 - attachWidth - targetNodeStyle.border.width; // targetNodeStyle.border.width 为根节点边框宽度，一刀切方便些。。。
       }
 
       const rotation = -Math.atan2(targetX - sourceX, targetY - sourceY);
