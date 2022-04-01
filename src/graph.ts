@@ -378,7 +378,7 @@ export class PixiGraph<NodeAttributes extends BaseNodeAttributes = BaseNodeAttri
 
     this.viewport.setZoom(1);
     this.viewport.center = graphCenter;
-    if (graphWidth > this.container.clientWidth) {
+    if (graphWidth >= this.container.clientWidth || graphHeight >= this.container.clientHeight) {
       this.viewport.fit(true);
     }
   }
